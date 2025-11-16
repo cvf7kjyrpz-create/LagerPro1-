@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lager App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#2f7d32">
+
+  <!-- iOS PWA Support -->
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <link rel="stylesheet" href="styles/style.css" />
+</head>
+
+<body>
+  <header class="app-header">
+    <h1>Lager App</h1>
+  </header>
+
+  <main>
+    <section class="controls">
+      <button id="btn-add-item">+ Artikel</button>
+      <button id="btn-export">Export (JSON)</button>
+      <label class="import-label">
+        Import
+        <input type="file" id="input-import" hidden accept="application/json">
+      </label>
+    </section>
+
+    <section class="filters">
+      <input id="search" type="search" placeholder="Suche ...">
+      <select id="filter-flag">
+        <option value="all">Alle</option>
+        <option value="flagged">Markierte</option>
+        <option value="low">Niedriger Bestand</option>
+      </select>
+    </section>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Mark</th>
+          <th>Name</th>
+          <th>Menge</th>
+          <th>Standort</th>
+          <th>Kaufdatum</th>
+          <th>Notiz</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody id="inventory-body"></tbody>
+    </table>
+  </main>
+
+  <!-- Dialog -->
+  <dialog id="item-dialog">
+    <form id="item-form" method="dialog" class="form-grid">
+      <h3 id="dialog-title">Artikel</h3>
+
+      <label>
+        Name
+        <input id="item-name" required>
+      </label>
+
+      <label>
+        Menge
+        <input id="item-quantity" type="number" min="0" value="0">
+      </label>
+
+      <label>
+        Standort
+        <input id="item-location">
+      </label>
+
+      <label>
+        Kaufdatum
+        <input id="item-date" type="date">
+      </label>
+
+      <label>
+        Notiz
+        <textarea id="item-note"></textarea>
+      </label>
+
+      <label class="checkbox">
+        <input id="item-flagged" type="checkbox">
+        Markieren
+      </label>
+
+      <menu class="dialog-menu">
+        <button value="cancel">Abbrechen</button>
+        <button value="save" class="primary">Speichern</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script type="module" src="src/app.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./service-worker.js");
+    }
+  </script>
+</body>
+</html>
