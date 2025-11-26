@@ -1,110 +1,83 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <title>Lager App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#2f7d32">
-
-  <!-- iOS PWA Support -->
-  <link rel="apple-touch-icon" href="assets/icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-  <link rel="stylesheet" href="styles/style.css" />
+<meta charset="UTF-8" />
+<title>Test: Artikel speichern mit Bild</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; background: #121417; color: #cfd2d7; }
+  dialog { background: #20252b; color: #cfd2d7; border-radius: 12px; padding: 20px; border: none; width: 90%; max-width: 400px; }
+  label { display: block; margin-top: 12px; }
+  input, textarea { width: 100%; padding: 8px; margin-top: 6px; border-radius: 6px; border: 1px solid #4a4e55; background: #2e3238; color: #cfd2d7; }
+  button { margin-top: 20px; padding: 10px 20px; border: none; border-radius: 8px; background: #3a3e44; color: #cfd2d7; font-weight: bold; cursor: pointer; }
+  img.preview { max-width: 100%; max-height: 200px; margin-top: 10px; border-radius: 8px; display: none; }
+</style>
 </head>
-
 <body>
-  <header class="app-header">
-    <h1>Lager App</h1>
-  </header>
 
-  <main>
-    <section class="controls">
-      <button id="btn-add-item">+ Artikel</button>
-      <button id="btn-export">Export (JSON)</button>
-      <label class="import-label">
-        Import
-        <input type="file" id="input-import" hidden accept="application/json">
-      </label>
-    </section>
+<button id="openBtn">Artikel anlegen</button>
 
-    <section class="filters">
-      <input id="search" type="search" placeholder="Suche ...">
-      <select id="filter-flag">
-        <option value="all">Alle</option>
-        <option value="flagged">Markierte</option>
-        <option value="low">Niedriger Bestand</option>
-      </select>
-    </section>
+<dialog id="articleDialog">
+  <form id="articleForm">
+    <h2>Artikel speichern</h2>
+    <label for="articleName">Name</label>
+    <input id="articleName" name="articleName" required />
+    <label for="image">Bild auswählen</label>
+    <input id="image" name="image" type="file" accept="image/*" />
+    <img id="preview" class="preview" alt="Bildvorschau" />
+    <button type="submit">Speichern</button>
+  </form>
+  <button id="cancelBtn">Abbrechen</button>
+</dialog>
 
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Mark</th>
-          <th>Name</th>
-          <th>Menge</th>
-          <th>Standort</th>
-          <th>Kaufdatum</th>
-          <th>Notiz</th>
-          <th>Aktionen</th>
-        </tr>
-      </thead>
-      <tbody id="inventory-body"></tbody>
-    </table>
-  </main>
+<script>
+  const dialog = document.getElementById('articleDialog');
+  const form = document.getElementById('articleForm');
+  const openBtn = document.getElementById('openBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const imageInput = document.getElementById('image');
+  const preview = document.getElementById('preview');
 
-  <!-- Dialog -->
-  <dialog id="item-dialog">
-    <form id="item-form" method="dialog" class="form-grid">
-      <h3 id="dialog-title">Artikel</h3>
+  openBtn.addEventListener('click', () => dialog.showModal());
+  cancelBtn.addEventListener('click', () => dialog.close());
 
-      <label>
-        Name
-        <input id="item-name" required>
-      </label>
-
-      <label>
-        Menge
-        <input id="item-quantity" type="number" min="0" value="0">
-      </label>
-
-      <label>
-        Standort
-        <input id="item-location">
-      </label>
-
-      <label>
-        Kaufdatum
-        <input id="item-date" type="date">
-      </label>
-
-      <label>
-        Notiz
-        <textarea id="item-note"></textarea>
-      </label>
-
-      <label class="checkbox">
-        <input id="item-flagged" type="checkbox">
-        Markieren
-      </label>
-
-      <menu class="dialog-menu">
-        <button value="cancel">Abbrechen</button>
-        <button value="save" class="primary">Speichern</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <script type="module" src="src/app.js"></script>
-
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js");
+  imageInput.addEventListener('change', () => {
+    if (imageInput.files && imageInput.files[0]) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        preview.src = e.target.result;
+        preview.style.display = "block";
+      };
+      reader.readAsDataURL(imageInput.files[0]);
+    } else {
+      preview.src = "";
+      preview.style.display = "none";
     }
-  </script>
+  });
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const file = imageInput.files[0];
+    function saveImage(base64) {
+      const articleName = form.articleName.value.trim();
+      const articles = JSON.parse(localStorage.getItem('articles') || '[]');
+      articles.push({ name: articleName, image: base64 || null });
+      localStorage.setItem('articles', JSON.stringify(articles));
+      alert(`Artikel '${articleName}' gespeichert!`);
+      form.reset();
+      preview.style.display = "none";
+      dialog.close();
+    }
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => saveImage(e.target.result);
+      reader.readAsDataURL(file);
+    } else {
+      saveImage(null);
+    }
+  });
+</script>
+
 </body>
 </html>
